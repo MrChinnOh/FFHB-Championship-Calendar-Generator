@@ -152,7 +152,8 @@ export default async function getIcs({ url, title }) {
             })()
 
             /** Summary or title of the event */
-            const summary = `${prefix} : ${rencontre.equipe1Libelle || '?'} vs ${rencontre.equipe2Libelle || '?'}`
+            //old const summary = `${prefix} : ${rencontre.equipe1Libelle || '?'} vs ${rencontre.equipe2Libelle || '?'}`
+            const summary = `${rencontre.phaseLibelle}`
 
             /** Journee url to be displayed in event content */
             const journeeUrl = rencontre.extPouleId
@@ -213,7 +214,7 @@ export default async function getIcs({ url, title }) {
             /** FDM URL */
             const fileUrl =
                 fileCode?.length >= 4
-                    ? `https://media-ffhb-fdm.ffhandball.fr/fdm/${fileCode[0]}/${fileCode[1]}/${fileCode[2]}/${fileCode[3]}/${rencontre.fdmCode}.pdf`
+                    ? `Lien FDM : https://media-ffhb-fdm.ffhandball.fr/fdm/${fileCode[0]}/${fileCode[1]}/${fileCode[2]}/${fileCode[3]}/${rencontre.fdmCode}.pdf`
                     : null
 
             /** The 0 or more arbitres of the journee */
@@ -229,7 +230,7 @@ export default async function getIcs({ url, title }) {
             })()
 
             return {
-                location: [locations.equipement?.libelle, locations.equipement?.rue, locations.equipement?.ville]
+                location: [locations.equipement?.libelle, locations.equipement?.rue, locations.equipement?.codePostal, locations.equipement?.ville]
                     .map(location => location?.trim())
                     .filter(x => !!x)
                     .join(', ')
