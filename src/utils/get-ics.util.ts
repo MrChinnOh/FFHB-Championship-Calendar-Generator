@@ -9,7 +9,7 @@ import type { FfhbApiAddressResult, FfhbApiCompetitionListResult, FfhbApiJournee
 import type { AxiosRequestConfig } from 'axios'
 import type { ICalCalendarData, ICalEventData } from 'ical-generator'
 
-const ICALS_FOLDER = './icals'
+const ICALS_FOLDER = './public/icals'
 
 /**
  * Request from FFHB API
@@ -37,8 +37,8 @@ export default async function getIcs({
     const equipeId = /\/equipe-([^)]+)\//gm.exec(url)![1]
 
     /** Path to ICS file */
-    const filePath = `${ICALS_FOLDER}/${equipeId}.ics`
-
+    //const filePath = `${ICALS_FOLDER}/${equipeId}.ics`
+    const filePath = `${ICALS_FOLDER}/${title}.ics`
     // Read from cache, if file was updated 1h ago max. That way, we can prevent spamming FFHB website
     if (existsSync(filePath) && Math.abs((await stat(filePath)).mtime.getTime() - new Date().getTime()) / 36e5 < 1) {
         /** ICS file found */
@@ -189,11 +189,12 @@ export default async function getIcs({
             })()
 
             /** Summary or title of the event */
-            const summary = `${prefix.charAt(0).toUpperCase() + prefix.slice(1)} : ${rencontre.equipe1Libelle || '?'} vs ${rencontre.equipe2Libelle || '?'}`
+            //const summary = `${prefix.charAt(0).toUpperCase() + prefix.slice(1)} : ${rencontre.equipe1Libelle || '?'} vs ${rencontre.equipe2Libelle || '?'}`
+            const summary = `${rencontre.phaseLibelle}`
 
             /** Journee url to be displayed in event content */
             const journeeUrl = rencontre.extPouleId
-                ? `${url.split('/').slice(0, -2).join('/')}/poule-${rencontre.extPouleId}/journee-${rencontre.journeeNumero}/`.replace(
+                ? `#️⃣ Lien Compétition FFHB : ${url.split('/').slice(0, -2).join('/')}/poule-${rencontre.extPouleId}/journee-${rencontre.journeeNumero}/`.replace(
                       'https://www.',
                       '',
                   )
@@ -252,7 +253,7 @@ export default async function getIcs({
             /** FDM URL */
             const fileUrl =
                 fileCode?.length >= 4
-                    ? `https://media-ffhb-fdm.ffhandball.fr/fdm/${fileCode[0]}/${fileCode[1]}/${fileCode[2]}/${fileCode[3]}/${rencontre.fdmCode}.pdf`
+                    ? `Lien FDM : https://media-ffhb-fdm.ffhandball.fr/fdm/${fileCode[0]}/${fileCode[1]}/${fileCode[2]}/${fileCode[3]}/${rencontre.fdmCode}.pdf`
                     : null
 
             /** The 0 or more arbitres of the journee */
@@ -279,12 +280,18 @@ export default async function getIcs({
                     .join(', ')
                     .toUpperCase(),
                 description: [
+                    rencontre.equipe1Libelle && rencontre.equipe2Libelle
+                    ? `${status} Rencontre : ${rencontre.equipe1Libelle} - ${rencontre.equipe2Libelle}`
+                    : '👉 Rencontre : À venir',
                     rencontre.equipe1Score && rencontre.equipe2Score
-                        ? `${status} Score : ${rencontre.equipe1Score} - ${rencontre.equipe2Score}`
-                        : '👉 À venir',
+                    ? `${status} Score final : ${rencontre.equipe1Score} - ${rencontre.equipe2Score}`
+                    : '👉 Score final : À venir',
+                    rencontre.equipe1ScoreMT && rencontre.equipe2ScoreMT
+                    ? `${status} Score mi-temps : ${rencontre.equipe1ScoreMT} - ${rencontre.equipe2ScoreMT}`
+                    : '👉 Score mi-temps : À venir',
                     fileUrl ? `🔗 ${fileUrl.replace('https://', '')}` : null,
                     referees?.length ? `🧑‍⚖️ ${new Intl.ListFormat('fr-FR', { style: 'long', type: 'conjunction' }).format(referees)}` : null,
-                    journeeUrl ? `#️⃣ ${journeeUrl}` : null,
+                    journeeUrl ? ` ${journeeUrl}` : null,
                 ]
                     .filter(x => !!x)
                     .join('\n'),
